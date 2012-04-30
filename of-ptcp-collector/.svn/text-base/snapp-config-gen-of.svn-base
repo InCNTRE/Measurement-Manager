@@ -1,0 +1,102 @@
+#!/usr/bin/perl -w
+
+#--------------------------------------------------------------------
+#----- SNAPP Config Generator for OpenFlow
+#---------------------------------------------------------------------
+
+use GRNOC::DatabaseQuery;
+use GRNOC::Config;
+
+use Data::Dumper;
+
+my $host="156.56.5.43";
+my $port=6633;
+my $location = "MDF Testlab";
+
+my %port_name = ();
+
+
+
+sub init_snappdb{
+    my $config_file = shift;
+
+    my $foo = GRNOC::Config->new(config_file => $config_file, debug => 0, force_array => 0);
+
+    my $db_info = $foo->get("/snapp-config/db");
+    my $user = $db_info->{'username'};    my $pass = $db_info->{'password'};
+    my $name = $db_info->{'name'};
+    my $host = $db_info->{'host'};
+
+    if($debug){
+
+        print STDERR "Connecting to $name on $host using creds $user:$pass\n";
+    }
+
+    my $dbq = GRNOC::DatabaseQuery->new(
+                                        user => $user,
+                                        pass => $pass,
+                                        name => $name,
+                                        srv =>  $host,
+                                        auto_commit => 0,
+                                        debug => 0
+                                        );
+
+    $dbq->connect();
+    
+    $dbq->register_error_callback(\&handle_error);
+
+    my $str = "insert into collection (name,host_id,rrdfile,premap_oid_suffix,collection_class_id,oid_suffix_mapping_id) VALUES (?,?,?,?,?,?)";
+
+    my $registered = $dbq->register_query(query => $str,
+                                          name => 'add_collection');
+}
+
+
+
+sub main {
+
+open(PORTS,"/home/chsmall/src/dpctl show tcp:$host:$port|") || die "Can't open ports on host $host:$port";
+while (<PORTS>) {
+  # if (/^\s+(\d+)\(([^\)])\)/) { $port_name{$1} = $2; }
+  if (/^\s+(\d+)\((.*)\).*state:(\S+)/) { $port_name{$1}{name} = $2; $port_name{$1}{state} = $3;}
+} 
+
+for my $port_index (sort {$a<=>$b} keys %port_name) {
+	print "Index : $port_index : Name : $port_name{$port_index}{name} Status: $port_name{$port_index}{status}\n";
+
+    #my $collection_id = add_collection(name => $name,collection_class => $collection_class, node => $node, premap_oid_suffix => $interface->{'abbr_int_name'}, threshold => $interface->{'contracted_bw'}, description => $interface->{'description'},suffix_mapping_name => $prefix_map,snappdb => $snappdb, rrd_file_name => $file_name);
+}
+
+
+sub add_collection{
+    my %params = @_;
+
+
+    my $name = $params{'name'};
+    my $collection_class = $params{'collection_class'};
+    my $node = $params{'node'};
+    my $premap_oid_suffix = $params{'premap_oid_suffix'};
+    my $threshold = $params{'threshold'};
+    my $description = $params{'description'};
+    my $suffix_mapping_name = $params{'suffix_mapping_name'};
+    my $snappdb = $params{'snappdb'};
+    my $rrd_file_name = $params{'rrd_file_name'};
+
+
+
+if($debug){
+        print STDERR "add_collection: " . $name . "\n";
+    }
+ 
+    my $collection = $snappdb->get_collection_by_name( parameters => {'collection.name' => $name,
+                                                                      'collection_acl.acl_role_id' => $acl_role_id});
+    $collection = @{$collection}[0];
+
+    my $collection_id;
+    
+    if(!defined($collection)){
+        #Collection does not currently exist so we will add it and then create a collection_instantiation
+    if($debug){
+        print STDERR "Didn't find the collection so creating collection $name\n";
+    }
+}

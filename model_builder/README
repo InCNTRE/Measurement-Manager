@@ -1,0 +1,51 @@
+#--------------------------------------------------------------------
+# README
+#--------------------------------------------------------------------
+
+ABOUT
+These Perl modules build Flowvisor datastructures that contain
+references to slice and device objects. These are then used, to
+generate a Nagios configuration file. The driver script (go.pl) can be
+edited to enable you to import this Flowvisor information for other
+applications, and the Fvctl moldule can be extended for other XMLRPC
+calls to Flowvisor.
+
+Note: The latest version of Flowvisor contains the utility ( fvcli ) 
+that allows users to remotely query the Flowvisor and can be extended
+to achieve similar functionality.
+
+INSTRUCTIONS
+1) You may need to install the Frontier::Client Perl module
+	For Debian/Ubuntu:
+		apt-get install libfrontier-rpc-perl
+
+2) Specify the URL(s) of the Flowvisor(s) that you have access to in go.pl
+	Ex. "https://[username]:[password]\@[hostname]:8080/xmlrpc"
+	Note: We placed the credentials in Auth.pm
+	
+3) To run the script to generate Nagios configuration files, run:
+	perl go.pl
+
+   Which will generate:
+   	auto-openflow.cfg
+
+4) This script can then be imported into Nagios ( http://www.nagios.org/ )
+
+   This script needs to be placed in:
+   	/usr/local/nagios/etc/
+
+   The file /usr/local/nagios/etc/nagios.cfg will need to be edited to 
+   contain the following line:
+	cfg_file=/usr/local/nagios/etc/auto-openflow.cfg   
+
+   To check the sanity of the new configuration file, run:
+        sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+   If the config is sane, you can reload Nagios with your new configurations
+        sudo /etc/init.d/nagios restart
+
+COMMON ERRORS
+1) "No method: Flowvisor::set_username at go.pl line 54"
+	Be sure to specify the proper credentials in Auth.pm or go.pl
+
+

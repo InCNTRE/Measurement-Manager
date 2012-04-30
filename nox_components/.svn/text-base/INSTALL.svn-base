@@ -1,0 +1,62 @@
+INSTALL
+
+You will need to install two NOX python_components, using the python component
+scripts that initialize directories for meas_monitor and grnoc_switch, then the python component scripts must be placed in these initialized directoires. See ttp://noxrepo.org/noxwiki/index.php/Developing_in_NOX for information on the NOX component installation proces; installing a Pyhon only component is similar to the C++ installation except that Python components require a different installation script.
+
+[ assuming meas_manager is located in ~/svn/meas_manager ]
+
+> mkdir git
+
+> cd git
+
+> git clone git://noxrepo.org/nox
+
+> cd nox
+
+> git checkout -b destiny remotes/origin/destiny
+
+> cd src/nox/netapps
+
+[ execute the following two commands to intialize the following the
+  meas_monitor and grnoc_switch python components components ]
+
+> ../../scripts/nox-new-py-app.py meas_monitor
+
+[ ignore the output to "Please rerun ./boot.sh and ./configure"
+  and continue to the next instruction ] 
+
+> ../../scripts/nox-new-py-app.py grnoc_switch
+
+[ ignore the output to "Please rerun ./boot.sh and ./configure"
+  and continue to the next instruction ]
+		
+[ Copy the python scripts into their corresponding component
+  directories, from meas_manager/nox_components/
+
+> cp ~/svn/meas_manager/nox_components/grnoc_switch.py \
+  ~/git/nox/src/nox/netapps/grnoc_switch/grnoc_switch.py
+
+> cp ~/svn/meas_manager/nox_components/meas_monitor.py \
+  ~/git/nox/src/nox/netapps/meas_monitor/meas_monitor.py
+	
+[ Compile NOX as usual: ]
+
+> ./boot.sh
+
+> mkdir build
+
+> cd build
+
+> ../configure
+
+[ if compiling on rhel6, use the following command: ]
+
+> ../configure --with-boost-filesystem=boost_filesystem --with-boost-unit-test-framework=mt LDFLAGS='-L/usr/include/openssl -lssl -lcrypto'
+
+>  make -j
+
+[ To run NOX, with the meas_monitor and grnoc_switch components: ]
+	
+> cd src
+	
+> ./nox_core -i ptcp:6633 meas_monitor grnoc_switch

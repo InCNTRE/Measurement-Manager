@@ -1,0 +1,10 @@
+Overview
+
+Measurement Manager is composed of three utilities: model_builder, gen_topo, and meas_monitor; these utilities work separately but are included together under the measurement manager package.
+
+Model_builder is composed of Perl modules that query Flowvisor(s) using the XMLRPC interface and builds data structures that contain information about each Flowvisor. This information is then used to generate Nagios (http://www.nagios.org/) configuration files that used to monitor the reachability of slices, devices, and services that are connected to a Flowvisor. 
+
+Gen_topo is composed of Perl scripts that use the Flowvsior XMLRPC API to generate GMOC exchange format files. They contain all nodes, intfaces and links between Openflow switches connected to that Flowvisor.
+
+Meas_monitor contains two Python component scripts that need to have component directories initialized and then must be placed in those directoires. If you are not familiar with installing NOX Python components, please read http://noxrepo.org/noxwiki/index.php/Developing_in_NOX before continuing. The two Python components, grnoc_switch and meas_monitor, must be initiated as Python components, which creates directories and updates configuration files, then NOX must be recompiled. For installation instructions, look at the INSTALL file in the nox_components directory.
+

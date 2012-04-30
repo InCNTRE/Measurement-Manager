@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+#
+
+use strict;
+use Data::Dumper;
+use RRDs;
+
+
+my $ip="156.56.5.41";
+my $port=6633;
+
+my $rrd_dir="/home/chsmall/src/rrds";
+my $db_file=$rrd_dir . "/of.db";
+
+my $port_index = -1;
+my %port;
+
+# Make sure rrd_dir exists
+# #
+#
+if (!(-d $rrd_dir)) { die "RRD dir $rrd_dir does not exist";} 
+
+#
+# Query switch
+#
+#
+
+open(PORTS,"/home/chsmall/src/dpctl show tcp:$ip:$port |") 
+	or die "Can not open switch $ip";
+while (<PORTS>) {
+    if (/\s*(\d+)\((\d+)\):/) {
+    	$port_index = $1;
+    	$port{$port_index}{name} = $2;
+    }
+}
+
+close PORTS;
+
+
+
+#  Create RRDS
+#
+
+open(DBFILE,">$db_file") or die "Can not open DB file $db_file"; 
+foreach my $pt (sort keys %port) {
+  
+  #
+  my $filename = $rrd_dir . "/" . $ip . "_" . $pt . ".rrd";
+  print DBFILE "$ip:$filename:$port{$pt}{name}\n"
+  
+}
+close DBFILE;
+

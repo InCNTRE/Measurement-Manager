@@ -1,0 +1,12 @@
+ABOUT
+This package uses the Flowvisor API to generate a GMOC exchange format file.
+
+This should contain all nodes, interfaces and links between OF switches 
+connected to that Flowvisor
+
+--Chris Small 
+
+INSTRUCTIONS
+To run:
+   perl gen_top.pl
+

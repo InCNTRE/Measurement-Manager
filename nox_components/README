@@ -1,0 +1,5 @@
+**********
+* README *
+**********
+
+Meas_monitor contains two Python component scripts that need to have component directories initialized and then must be placed in those directoires. If you are not familiar with installing NOX Python components, please read http://noxrepo.org/noxwiki/index.php/Developing_in_NOX before continuing. The two Python components, grnoc_switch and meas_monitor, must be initiated as Python components, which creates directories and updates configuration files, then NOX must be recompiled. For installation instructions, look at the INSTALL file in the nox_components directory.

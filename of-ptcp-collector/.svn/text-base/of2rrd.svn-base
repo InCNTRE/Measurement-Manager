@@ -1,0 +1,87 @@
+#!/usr/bin/perl
+#
+use Data::Dumper;
+use RRDs;
+
+my $ip="156.56.5.41";
+my $port=6633;
+
+my $rrd_dir="/home/chsmall/src/rrds";
+
+my $port_index = -1;
+my %port;
+
+# Step = 60 sec
+my $step = 60;
+
+
+
+
+# Loop forever
+#
+while (1) {
+
+# Make sure rrd_dir exists
+# #
+#
+if (!(-d $rrd_dir)) { die "RRD dir $rrd_dir does not exist";} 
+
+#
+# Query switch
+#
+#
+
+open(PORTS,"/home/chsmall/src/dpctl dump-ports tcp:$ip:$port |") 
+	or die "Can not open switch $ip";
+while (<PORTS>) {
+  if (/\s*port\s+(\d+): rx pkts=(\d+), bytes=(\d+)/) {
+        $port_index = $1;
+	$port{$port_index}{rx_pkts} = $2;
+	$port{$port_index}{rx_bytes} = $3;
+	}
+   if (/\s*tx pkts=(\d+), bytes=(\d+)/) {
+        $port{$port_index}{tx_pkts} = $1;
+        $port{$port_index}{tx_bytes} = $2;
+        }
+}
+
+close PORTS;
+
+
+
+#  Create RRDS
+#
+
+
+foreach my $pt (sort keys %port) {
+  my $file = $rrd_dir . "/" . $ip . "_" . $pt . ".rrd";
+  
+  # If RRD does't exist create
+  #
+  if (!(-f $file)) {
+  RRDs::create($file,"--step",$step,"DS:in_pkts:COUNTER:120:U:U",
+	"DS:in_bytes:COUNTER:120:U:U",
+	"DS:out_pkts:COUNTER:120:U:U",
+        "DS:out_bytes:COUNTER:120:U:U",
+	"RRA:AVERAGE:0.5:1:100",
+        "RRA:AVERAGE:0.5:60:1000" );
+  }
+
+  # Populate RRDS
+  #
+  print "update $file N:$port{$pt}{rx_pkts}:$port{$pt}{rx_bytes}:$port{$pt}{tx_pkts}:$port{$pt}{tx_bytes}\n";
+  RRDs::update($file,"N:$port{$pt}{rx_pkts}:$port{$pt}{rx_bytes}:$port{$pt}{tx_pkts}:$port{$pt}{tx_bytes}");
+
+  my $rrderror = RRDs::error;
+  print $rrderror;
+  
+
+}
+
+
+#print Dumper %port;
+#
+#
+print "Sleeping $step sec\n";
+sleep $step;
+}
